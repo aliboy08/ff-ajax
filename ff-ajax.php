@@ -42,6 +42,7 @@ add_action('plugins_loaded', function(){
 include_once 'functions.php';
 include_once 'class-ff-ajax.php';
 
-add_action('wp_footer', function(){
-    include 'sample.php';
-});
+// sample / test
+// add_action('wp_footer', function(){
+//     include 'sample.php';
+// });
