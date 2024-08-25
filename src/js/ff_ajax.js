@@ -30,7 +30,7 @@ export default class FF_Ajax {
     }
     
     init_filters(){
-        let filters_container = this.options.filters_container ? this.options.filters_container : this.container;
+        let filters_container = this.options.filters_container ?? this.container;
 
         this.filters = new Filters({
             ff_ajax: this,
@@ -42,7 +42,7 @@ export default class FF_Ajax {
     
     query(on_complete){
         clearTimeout(this.query_timeout);
-        this.query_throttle = setTimeout(()=>{
+        this.query_timeout = setTimeout(()=>{
             this.query_final(on_complete);
         }, this.query_timeout_duration);
     }
@@ -71,8 +71,6 @@ export default class FF_Ajax {
         })
         .then((response) => response.json())
         .then((data) => {
-            // this.render(data);
-            // this.load_more.update(data)
             if( typeof on_complete == 'function' ) on_complete(data);
         })
         .catch((error) => {
@@ -134,7 +132,9 @@ export default class FF_Ajax {
     }
 
     render_no_results(){
-        this.loop.innerHTML = '<div class="no_results">'+ this.options.no_results_html ?? 'No results...' + '</div>';
+
+        let no_results_html = this.options.no_results_html ?? 'No results...';
+        this.loop.innerHTML = '<div class="no_results">'+ no_results_html + '</div>';
 
         if( typeof this.after_render === 'function' ) {
             this.after_render(html);

@@ -105,8 +105,6 @@ export default class Filters {
 
         this.apply_query_args(args);
 
-        console.log('update_query_args', this.query_args)
-
         if( this.query_on_change ) {
             this.query();
         }
