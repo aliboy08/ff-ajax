@@ -3,7 +3,7 @@
  * Plugin Name: FF Ajax
  * Plugin URI: https://www.fivebyfive.com.au/
  * Description: Simplify development involving ajax
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Five by Five
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,11 +17,9 @@ class FF_Plugin_Ajax {
     public $vite;
     
     function __construct(){
-        
         $this->vite = new FF_Vite([
             'id' => $this->id,
-            'url' => plugins_url('/', __FILE__),
-            'path' => plugin_dir_path(__FILE__),
+            'path' => __DIR__,
         ]);
     }
     

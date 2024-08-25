@@ -1,9 +1,7 @@
 .ff_ajax {
-
     &.loading {
         opacity: .8;
     }
-
 }
 
 .ajax_filters_container {
@@ -24,7 +22,6 @@
     gap: 10px;
 
     .selected {
-        background: #000;
-        color: #fff;
+        border-color: #222;
     }
 }
