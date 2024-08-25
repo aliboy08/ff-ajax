@@ -1,7 +1,6 @@
 <?php
 class FF_Ajax {
     
-    public $id = '';
     public $settings = [];
     public $query = [];
 
@@ -20,85 +19,47 @@ class FF_Ajax {
             if(isset( $this->settings[$key] )) continue;
             $this->settings[$key] = $value;
         }
+
+        // normalize path - fix for windows path
+        $this->settings['item_template'] = str_replace('\\', '/', $this->settings['item_template']);
+
+        $this->initial_query();
         
-        $this->id = isset($this->settings['id']) ? $this->settings['id'] : 'ff_ajax_'. $this->generateRandomString(10);
+    }
+
+    public function initial_query(){
+
+        if( !$this->settings['initial_query'] ) return;
+            
+        $this->query = new WP_Query($this->settings['query_args']);
+        
+        // initial check have more posts
+        $this->settings['initial_data'] = [
+            'count' => $this->query->post_count,
+            'have_more_posts' => ff_ajax_have_more_posts($this->settings['query_args'], $this->query->post_count),
+        ];
     }
     
     public function render(){
-
-        wp_enqueue_script('ff-ajax');
+        
+        global $ff_ajax;
+        $ff_ajax->enqueue();
+        
+        // wp_enqueue_script('ff-ajax');
 
         if( $this->settings['initial_query'] ) {
-    
-            $this->query = new WP_Query($this->settings['query_args']);
 
             echo '<div class="loop">';
             foreach( $this->query->posts as $post ) {
                 include $this->settings['item_template'];
             }
             echo '</div>';
+
         }
         else {
             echo '<div class="loop"><div class="loading_text">Loading...</div></div>';
         }
-
-        $this->render_js();
        
-    }
-
-    public function render_js(){
-        ?>
-        <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            if( typeof FF_Ajax === 'undefined' ) return;
-            var el = document.querySelector('#<?php echo $this->id; ?>');
-
-            var settings = {
-                container: el,
-                query_args: <?php echo json_encode($this->settings['query_args']); ?>,
-                item_template: '<?php echo $this->settings['item_template']; ?>',
-                load_more_text: '<?php echo $this->settings['load_more_text']; ?>',
-                no_results_html: '<?php echo $this->settings['no_results_html']; ?>',
-                filter_on_load: '<?php echo $this->settings['filter_on_load']; ?>',
-                query_on_change: '<?php echo $this->settings['query_on_change']; ?>',
-            };
-
-            <?php
-            if( isset($this->settings['custom_data']) ) {
-                ?>
-                settings.custom_data = <?php echo json_encode($this->settings['custom_data']); ?>;
-                <?php
-            } 
-            ?>
-            
-            el.ff_ajax = new FF_Ajax(settings);
-            <?php
-            if( !$this->settings['initial_query'] ) {
-                ?>
-                el.ff_ajax.query();
-                <?php
-            }
-            else {
-                if( ff_ajax_have_more_posts($this->settings['query_args'], $this->query->post_count) ) {
-                    ?>
-                    el.ff_ajax.update_load_more({ total_posts:<?php echo $this->query->post_count; ?>, have_more_posts:true });
-                    <?php
-                }
-            }
-            ?>
-        });
-        </script>
-        <?php
-    }
-    
-    public function generateRandomString($length = 10) {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[random_int(0, $charactersLength - 1)];
-        }
-        return $randomString;
     }
     
     public function have_more_posts($args, $offset) {
@@ -122,7 +83,7 @@ class FF_Ajax {
                 echo '<span class="label">'. $args['label'] .'</span>';
             }
 
-            echo '<select class="ff_ajax_filter"'. $attr .'>';
+            echo '<select class="ff_ajax_filter ff_ajax_filter_dropdown"'. $attr .'>';
                 echo '<option value="">'. $placeholder .'</option>';
                 foreach( $choices as $choice_value => $choice_label ) {
                     $is_selected = $selected == $choice_value ? ' selected' : ''; 
@@ -161,7 +122,7 @@ class FF_Ajax {
         $attr = $this->get_filter_attr($args);
 
         echo '<div class="filter-con '. $add_class .'">';
-            echo '<label><input type="checkbox" class="ff_ajax_filter"'. $attr .' value="1"'. $is_checked .'>'. $label .'</label>';
+            echo '<label><input type="checkbox" class="ff_ajax_filter ff_ajax_filter_checkbox"'. $attr .' value="1"'. $is_checked .'>'. $label .'</label>';
         echo '</div>';
     }
 
@@ -212,9 +173,10 @@ class FF_Ajax {
     }
 
     public function search_field($args){
+        $this->settings['search'] = true;
         $placeholder = $args['placeholder'] ?? 'Search';
         $attr = $this->get_html_attr($args, ['with_clear']);
-        echo '<div class="filter-con search-con">';
+        echo '<div class="filter-con ff_ajax_search_con">';
             echo '<input type="search" placeholder="'. $placeholder .'" class="search_field"'. $attr .'>';
         echo '</div>';
     }
@@ -225,6 +187,8 @@ class FF_Ajax {
         $placeholder = $this->get_placeholder($args);
         if( $placeholder == 'Filter' ) $placeholder = 'Sort';
         $add_class = isset($args['class']) ? ' '.$args['class'] : '';
+
+        $this->settings['sort'] = true;
 
         echo '<div class="filter-con'. $add_class .'">';
 
@@ -364,6 +328,10 @@ class FF_Ajax {
             $html_attr .= ' data-'.$attr_key.'="'. $attr_value .'"';
         }
         return $html_attr;
+    }
+
+    public function settings_attr(){
+        return 'data-settings="'. htmlspecialchars(json_encode($this->settings), ENT_QUOTES, 'UTF-8') .'"';
     }
 
 }

@@ -14,7 +14,6 @@ echo Creating zip file...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0zip.ps1" -source_path "%source_path%" -plugin_name "%plugin_name%" -exclude "%exclude%"
 
 set "install_name=devlibrary2021"
-@REM set "remote_path=/sites/%install_name%/wp-content/plugins/fivebyfive/modules/"
 set "remote_path=/sites/%install_name%/ff-modules/"
 set "ssh_host=%install_name%@%install_name%.ssh.wpengine.net"
 

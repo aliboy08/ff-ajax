@@ -1,0 +1,30 @@
+.ff_ajax {
+
+    &.loading {
+        opacity: .8;
+    }
+
+}
+
+.ajax_filters_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.ff_ajax_filter_checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ff_ajax_filter_buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    .selected {
+        background: #000;
+        color: #fff;
+    }
+}
