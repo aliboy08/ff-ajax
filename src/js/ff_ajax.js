@@ -27,6 +27,8 @@ export default class FF_Ajax {
         this.query_timeout = null;
         this.query_timeout_duration = 100;
         this.item_template = this.options.item_template;
+
+        this.request_time = null;
     }
     
     init_filters(){
@@ -48,6 +50,8 @@ export default class FF_Ajax {
     }
 
     query_final(on_complete){
+        
+        this.request_time = Date.now();
 
         const data = new FormData();
 
@@ -59,11 +63,13 @@ export default class FF_Ajax {
         data.append('item_template', this.item_template);
 
         data.append('custom_data', this.options.custom_data);
+
+        data.append('request_time', this.request_time);
         
         if( typeof this.options.custom_query !== 'undefined' ) {
             data.append('custom_query', 1);
         }
-
+        
         fetch(ff_ajax_data.ajax_url, {
             method: "POST",
             credentials: 'same-origin',
@@ -71,6 +77,10 @@ export default class FF_Ajax {
         })
         .then((response) => response.json())
         .then((data) => {
+            if( data.request_time < this.request_time ) {
+                // old request, ignore
+                return;
+            }
             if( typeof on_complete == 'function' ) on_complete(data);
         })
         .catch((error) => {

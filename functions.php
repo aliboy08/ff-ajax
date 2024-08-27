@@ -5,8 +5,11 @@ function ff_ajax_action(){
 
     if ( ! wp_verify_nonce( $_POST['nonce'], 'ff_ajax' ) ) die();
 
+    sleep(1);
+
     $response = [
         'payload' => $_POST,
+        'request_time' => $_POST['request_time'],
     ];
     
     if( isset($_POST['custom_query']) ) {
