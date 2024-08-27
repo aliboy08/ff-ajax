@@ -5,10 +5,8 @@ function ff_ajax_action(){
 
     if ( ! wp_verify_nonce( $_POST['nonce'], 'ff_ajax' ) ) die();
 
-    sleep(1);
-
     $response = [
-        'payload' => $_POST,
+        // 'payload' => $_POST,
         'request_time' => $_POST['request_time'],
     ];
     
@@ -28,19 +26,7 @@ function ff_ajax_action(){
     }
 
     // Standard
-
-    // if( is_array($_POST['query_args']) ) {
-    //     // jquery support
-    //     $query_args = $_POST['query_args'];
-    // } else {
-    //     // fetch support
-    //     $query_args = json_decode(stripslashes($_POST['query_args']), true); 
-    // }
-
     $query_args = json_decode(stripslashes($_POST['query_args']), true);
-    $response['query_args'] = $query_args; 
-    
-    // $query_args = apply_filters('ff_ajax_query_args_'. $_POST['ajax_action'], $query_args, $this, $_POST);
     
     if( isset($_POST['custom_data']) ) {
         $custom_data = $_POST['custom_data'];
@@ -76,17 +62,3 @@ function ff_ajax_have_more_posts($args, $offset) {
 
     return 0;
 }
-
-// add_action('wp_loaded', 'ff_ajax_register_scripts');
-// function ff_ajax_register_scripts(){
-//     $url = plugin_dir_url(__FILE__);
-//     $file = 'js/ff-ajax.js';
-//     $version = '1.0';
-//     $dir = plugin_dir_path(__FILE__);
-//     $version = filemtime($dir.$file);
-//     wp_register_script('ff-ajax', $url.$file, ['jquery'], $version, true);
-//     wp_localize_script('ff-ajax', 'ff_ajax_data', [
-//         'ajax_url' => admin_url('admin-ajax.php'),
-//         'nonce' => wp_create_nonce('ff_ajax'),
-//     ]);
-// }
