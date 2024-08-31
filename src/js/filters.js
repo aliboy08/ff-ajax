@@ -1,6 +1,7 @@
 import Filter_Buttons from './filter_buttons';
 import Filter_Dropdown from './filter_dropdown';
 import Filter_Checkboxes from './filter_checkboxes';
+import Filter_Indicators from './filter_indicators';
 import { get_index_key_value } from './utils';
 
 export default class Filters {
@@ -18,7 +19,8 @@ export default class Filters {
         this.filter_on_load = this.options.filter_on_load ?? true;
 
         this.query_args = options.query_args;
-        
+
+        this.init_indicators();
         this.init_fields();
         this.init_reset();
     }
@@ -26,7 +28,7 @@ export default class Filters {
     init_fields(){
 
         this.fields = [];
-        
+
         this.init_dropdowns();
         this.init_buttons();
         this.init_checkboxes();
@@ -39,12 +41,28 @@ export default class Filters {
             field.filter_type = 'dropdown';
             this.fields.push(field);
 
+            if( this.with_indicator ) {
+                this.indicators.init_field({
+                    el: field,
+                    on_remove: (value)=>{
+                        // on indicator remove, update query
+                        field.filter_value = value;
+                        this.update_query_args(field);
+                    }
+                });
+            }
+            
             field.dropdown = new Filter_Dropdown({
                 element: field,
                 multiple: field.dataset.multiple ?? false,
                 on_change: (value)=>{
                     field.filter_value = value;
                     this.update_query_args(field);
+
+                    // on dropdown change, add indicator
+                    if( typeof field.indicator !== 'undefined' ) {
+                        field.indicator.update(value);
+                    }
                 }
             })
         })
@@ -60,7 +78,7 @@ export default class Filters {
             field.filter_buttons = new Filter_Buttons({
                 container: field,
                 items: 'button',
-                is_multiple: field.is_multiple,
+                multiple: field.dataset.multiple ?? false,
                 on_change: (value)=>{
                     field.filter_value = value;
                     this.update_query_args(field);
@@ -120,7 +138,6 @@ export default class Filters {
                 field: field.dataset.taxonomy_field ?? 'slug',
                 filter_key: field.dataset.filter_key ?? field.dataset.taxonomy,
             }
-
         }
         else if( field.dataset.query_type == 'meta_query' ) {
 
@@ -192,12 +209,25 @@ export default class Filters {
 
         ff_ajax.total_posts = 0;
         ff_ajax.query_args.offset = 0;
-
+        
         ff_ajax.container.classList.add('loading');
         ff_ajax.query((data)=>{
             ff_ajax.render_replace(data);
             ff_ajax.load_more.update(data)
             ff_ajax.container.classList.remove('loading');
+        });
+    }
+
+    // filter indicators for fields like dropdown multiple
+    init_indicators(){
+
+        this.with_indicator = typeof this.options.indicators_container != 'undefined' && this.options.indicators_container != false;
+
+        if( !this.with_indicator ) return;
+        
+        this.indicators = new Filter_Indicators({
+            container: this.options.indicators_container,
+            after: this.container,
         });
     }
 

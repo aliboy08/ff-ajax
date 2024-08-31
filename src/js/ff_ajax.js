@@ -32,13 +32,15 @@ export default class FF_Ajax {
     }
     
     init_filters(){
-        let filters_container = this.options.filters_container ?? this.container;
+
+        this.filters_container = this.options.filters ?? this.container;
 
         this.filters = new Filters({
             ff_ajax: this,
-            container: filters_container,
+            container: this.filters_container,
             query_args: this.query_args,
             query_on_change: this.options.query_on_change ?? true,
+            indicators_container: this.options.indicators ?? 'default',
         });
     }
     
@@ -163,7 +165,7 @@ export default class FF_Ajax {
 
         if( !this.options.search ?? false) return;
 
-        let search_container = this.options.search_container ?? this.options.filters_container ?? this.container;
+        let search_container = this.options.search_container ?? this.filters_container;
 
         if( typeof search_container == 'string' ) {
             search_container = document.querySelector(search_container)
@@ -183,7 +185,7 @@ export default class FF_Ajax {
 
         if( !this.options.sort ?? false ) return;
 
-        let sort_container = this.options.sort_container ?? this.options.filters_container ?? this.container;
+        let sort_container = this.options.sort_container ?? this.filters_container;
 
         if( typeof sort_container == 'string' ) {
             sort_container = document.querySelector(sort_container)

@@ -6,20 +6,22 @@ $query_args = [
 ];
 
 $settings = [
-    'item_template' => plugin_dir_path(__FILE__) . 'item-sample.php',
+    'item_template' => __DIR__ . '/item-sample.php',
     'query_args' => $query_args,
     'initial_query' => true,
-    'filters_container' => '.ajax_filters_container',
+    'filters' => '.ajax_filters',
+    'indicators' => '.filter_indicators',
 ];
 
 $ff_ajax = new \FF_Ajax($settings);
 
-echo '<div class="ajax_filters_container">';
+echo '<div class="ajax_filters">';
 
     $ff_ajax->filter_dropdown([
         'taxonomy' => 'category',
         'placeholder' => 'Category',
         'exclude' => ['uncategorized'],
+        'multiple' => true,
     ]);
 
     $choices = [
@@ -35,6 +37,7 @@ echo '<div class="ajax_filters_container">';
 
     $ff_ajax->filter_buttons([
         'taxonomy' => 'category',
+        'multiple' => true,
     ]);
 
     $ff_ajax->filter_checkbox([
@@ -101,8 +104,9 @@ echo '<div class="ajax_filters_container">';
             ],
         ],
     ]);
-
 echo '</div>';
+
+echo '<div class="filter_indicators"></div>';
 
 echo '<div id="'. $ff_ajax->id .'" class="ff_ajax" '. $ff_ajax->settings_attr() .'>';
     $ff_ajax->render();

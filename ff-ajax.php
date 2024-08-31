@@ -3,7 +3,7 @@
  * Plugin Name: FF Ajax
  * Plugin URI: https://www.fivebyfive.com.au/
  * Description: Simplify development involving ajax
- * Version: 2.0.4
+ * Version: 2.0.5
  * Author: Five by Five
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -42,7 +42,5 @@ add_action('plugins_loaded', function(){
 include_once 'functions.php';
 include_once 'class-ff-ajax.php';
 
-// sample / test
-// add_action('wp_footer', function(){
-//     include 'sample.php';
-// });
+// test
+// include_once 'test/init.php';

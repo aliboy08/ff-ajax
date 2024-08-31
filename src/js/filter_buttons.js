@@ -5,7 +5,7 @@ export default class Filter_Buttons {
         this.options = {
             container: '',
             items: '',
-            is_multiple: false,
+            multiple: false,
             allow_empty: true,
         };
 
@@ -30,13 +30,13 @@ export default class Filter_Buttons {
         }
         this.items = items;
 
-        this.is_multiple = this.options.is_multiple;
+        this.multiple = this.options.multiple;
         
-        this.value = this.is_multiple ? [] : '';
+        this.value = this.multiple ? [] : '';
 
         items.forEach(item=>{
             item.addEventListener('click', ()=>{
-                if( this.is_multiple ) {
+                if( this.multiple ) {
                     this.on_click_multiple(item);
                 } 
                 else {

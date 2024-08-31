@@ -9,11 +9,16 @@ export default class Load_More {
     }
 
     init_button(){
+
+        this.container = document.createElement('div');
+        this.container.classList.add('ff_ajax_load_more_container');
+        this.container.style.display = 'none';
+        this.options.render_after.after(this.container);
+
         this.button = document.createElement('div');
-        this.button.classList.add('ff_ajax_load_more_btn', 'btn');
-        this.button.style.display = 'none';
+        this.button.classList.add('btn');
         this.button.textContent = this.options.text ?? 'Load more';
-        this.options.render_after.after(this.button);
+        this.container.append(this.button);
 
         this.button.addEventListener('click', ()=>{
             if( !this.enabled ) return;
@@ -23,12 +28,12 @@ export default class Load_More {
     
     show_button(){
         this.enabled = true;
-        this.button.style.display = '';
+        this.container.style.display = '';
     }
 
     hide_button(){
         this.enabled = false;
-        this.button.style.display = 'none';
+        this.container.style.display = 'none';
     }
 
     query(){
@@ -37,9 +42,11 @@ export default class Load_More {
         
         ff_ajax.query_args.offset = ff_ajax.total_posts;
 
+        this.button.classList.add('loading');
         ff_ajax.container.classList.add('loading_load_more');
         ff_ajax.query((data)=>{
             ff_ajax.render_append(data);
+            this.button.classList.remove('loading');
             ff_ajax.container.classList.remove('loading_load_more');
             this.update(data)
         });

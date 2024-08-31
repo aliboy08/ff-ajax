@@ -1,4 +1,4 @@
-// import './main.scss';
+import './main.scss';
 import FF_Ajax from './js/ff_ajax';
 
 document.addEventListener('DOMContentLoaded',()=>{
