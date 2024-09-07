@@ -3,6 +3,7 @@ class FF_Ajax {
     
     public $settings = [];
     public $query = [];
+    public $filters = [];
 
     public function __construct($settings){
 
@@ -12,6 +13,7 @@ class FF_Ajax {
             'initial_query' => false,
             'filter_on_load' => false,
             'query_on_change' => true,
+            'query_strings' => false,
             'load_more_text' => 'Load more',
             'no_results_html' => 'No results found, try different filters',
         ];
@@ -23,14 +25,20 @@ class FF_Ajax {
         // normalize path - fix for windows path
         $this->settings['item_template'] = str_replace('\\', '/', $this->settings['item_template']);
 
-        $this->initial_query();
+        // $this->initial_query();
         
     }
 
     public function initial_query(){
 
         if( !$this->settings['initial_query'] ) return;
-            
+
+        if( $this->settings['query_strings'] ) {
+            $this->query_args_apply_query_strings();
+        }
+
+        // pre_debug($this->settings['query_args']);
+        
         $this->query = new WP_Query($this->settings['query_args']);
         
         // initial check have more posts
@@ -44,8 +52,6 @@ class FF_Ajax {
         
         global $ff_ajax;
         $ff_ajax->enqueue();
-        
-        // wp_enqueue_script('ff-ajax');
 
         if( $this->settings['initial_query'] ) {
 
@@ -77,6 +83,14 @@ class FF_Ajax {
         $attr = $this->get_filter_attr($args);
         $add_class = isset($args['class']) ? ' '.$args['class'] : '';
 
+        $query_string_filter = $this->get_query_string_filter($args);
+        if( $query_string_filter ) {
+            $attr .= ' data-initial_selected="'. $query_string_filter .'"';
+            $selected = explode(',', $query_string_filter);
+        }
+
+        $this->filters[] = $this->get_filter_data($args);
+
         echo '<div class="filter-con'. $add_class .'">';
 
             if( isset($args['label']) ) {
@@ -93,23 +107,6 @@ class FF_Ajax {
         echo '</div>';
     }
 
-    public function filter_input($args){
-        $type = isset($args['meta_key']) ? 'meta_query' : 'tax_query';
-
-        $args['query_type'] = $type;
-
-        $placeholder = $this->get_placeholder($args);
-        $attr = $this->get_filter_attr($args);
-
-        $add_class = isset($args['class']) ? ' '.$args['class'] : '';
-        echo '<div class="filter-con'. $add_class .'">';
-            if( isset($args['label']) ) {
-                echo '<span class="label">'. $args['label'] .'</span>';
-            }
-            echo '<input type="text" placeholder="'. $placeholder .'" class="ff_ajax_filter"'. $attr .'>';
-        echo '</div>';
-    }
-
     public function filter_checkbox($args){
         $type = isset($args['meta_key']) ? 'meta_query' : 'tax_query';
         $args['query_type'] = $type;
@@ -121,12 +118,20 @@ class FF_Ajax {
         $add_class = $this->get_class($args);
         $attr = $this->get_filter_attr($args);
 
+        $query_string_filter = $this->get_query_string_filter($args);
+        if( $query_string_filter ) {
+            $is_checked = ' checked';
+        }
+
+        $this->filters[] = $this->get_filter_data($args);
+
         echo '<div class="filter-con '. $add_class .'">';
             echo '<label><input type="checkbox" class="ff_ajax_filter ff_ajax_filter_checkbox"'. $attr .' value="1"'. $is_checked .'>'. $label .'</label>';
         echo '</div>';
     }
 
     public function filter_checkboxes($args){
+
         $type = isset($args['meta_key']) ? 'meta_query' : 'tax_query';
         $args['query_type'] = $type;
 
@@ -138,7 +143,14 @@ class FF_Ajax {
         $add_class = $this->get_class($args);
         $attr = $this->get_filter_attr($args);
         $choices = $this->get_choices($args);
+        
+        $query_string_filter = $this->get_query_string_filter($args);
+        if( $query_string_filter ) {
+            $selected = explode(',', $query_string_filter);
+        }
 
+        $this->filters[] = $this->get_filter_data($args);
+        
         echo '<div class="filter-con ff_ajax_filter_checkboxes '. $add_class .'"'. $attr .'>';
             foreach( $choices as $choice_value => $choice_label ) {
                 $is_selected = in_array( $choice_value, $selected) ? ' checked' : '';
@@ -150,7 +162,7 @@ class FF_Ajax {
     }
 
     public function filter_buttons($args){
-
+        
         $type = isset($args['meta_key']) ? 'meta_query' : 'tax_query';
 
         $args['query_type'] = $type;
@@ -163,6 +175,13 @@ class FF_Ajax {
         $attr = $this->get_filter_attr($args);
         $add_class = $this->get_class($args);
         $choices = $this->get_choices($args);
+        
+        $query_string_filter = $this->get_query_string_filter($args);
+        if( $query_string_filter ) {
+            $selected = explode(',', $query_string_filter);
+        }
+
+        $this->filters[] = $this->get_filter_data($args);
 
         echo '<div class="filter-con ff_ajax_filter_buttons '. $add_class .'"'. $attr .'>';
         foreach( $choices as $choice_value => $choice_label ) {
@@ -276,6 +295,19 @@ class FF_Ajax {
     }
 
     public function get_filter_attr($args){
+        
+        $filter_data = $this->get_filter_data($args);
+
+        $attr = '';
+        foreach( $filter_data as $key => $value ) {
+            $attr .= ' data-'.$key.'="'. $value .'"';
+        }
+
+        return $attr;
+    }
+
+    public function get_filter_data($args){
+
         $type = $args['query_type'];
 
         if( isset($args['meta_key']) && isset($args['multiple']) ) {
@@ -285,6 +317,7 @@ class FF_Ajax {
         $attr = [
             'query_type' => $type,
         ];
+
         $attr_mapping = [
             'meta_query' => [
                 'meta_key',
@@ -301,6 +334,7 @@ class FF_Ajax {
                 'indicator_prefix',
             ],
         ];
+
         foreach( $attr_mapping[$type] as $key ) {
             if( isset($args[$key]) ) $attr[$key] = $args[$key];
         }
@@ -309,29 +343,104 @@ class FF_Ajax {
             if( isset($args[$key]) ) $attr[$key] = $args[$key];
         }
 
-        $html_attr = '';
-        foreach( $attr as $attr_key => $attr_value ) {
-            $html_attr .= ' data-'.$attr_key.'="'. $attr_value .'"';
-        }
-
-        return $html_attr;
+        return $attr;
     }
 
     public function get_html_attr($args, $attr_keys){
+
         $attr = [];
         foreach( $args as $key => $value ) {
             if( !in_array( $key, $attr_keys ) ) continue;
             $attr[$key] = $value;
         }
+
         $html_attr = '';
         foreach( $attr as $attr_key => $attr_value ) {
             $html_attr .= ' data-'.$attr_key.'="'. $attr_value .'"';
         }
+
         return $html_attr;
     }
 
     public function settings_attr(){
         return 'data-settings="'. htmlspecialchars(json_encode($this->settings), ENT_QUOTES, 'UTF-8') .'"';
+    }
+
+    public function get_filter_key($args){
+
+        if( isset($args['filter_key']) ) {
+            return $args['filter_key'];
+        }
+
+        if( isset($args['taxonomy']) ) {
+            return $args['taxonomy'];
+        }
+
+        if( isset($args['meta_key']) ) {
+            return $args['meta_key'];
+        }
+
+    }
+
+    public function query_args_apply_query_strings(){
+
+        foreach($this->filters as $filter) {
+            
+            $key = $filter['query_type'] == 'tax_query' ? $filter['taxonomy'] : $filter['meta_key'];
+            if( !isset($_GET['filter_'. $key]) ) continue;
+
+            $filter_value = explode(',', $_GET['filter_'. $key]);
+
+            if( $filter['query_type'] == 'tax_query' ) {
+                // tax_query
+                $this->query_string_add_tax_query($filter_value, $filter['taxonomy']);
+            }
+            else {
+                // meta_query
+                $this->query_string_add_meta_query($filter_value, $filter);
+            }
+        }
+    }
+
+    public function query_string_add_tax_query($terms, $taxonomy){
+
+        if( !isset( $this->settings['query_args']['tax_query'] ) ) {
+            $this->settings['query_args']['tax_query'] = [];
+        }
+
+        $this->settings['query_args']['tax_query'][] = [
+            'taxonomy' => $taxonomy,
+            'field' => 'slug',
+            'terms' => $terms,
+            'filter_key' => $taxonomy,
+        ];
+    }
+
+    public function query_string_add_meta_query($meta_value, $filter){
+
+        if( !isset( $this->settings['query_args']['meta_query'] ) ) {
+            $this->settings['query_args']['meta_query'] = [];
+        }
+
+        $this->settings['query_args']['meta_query'][] = [
+            'key' => $filter['meta_key'],
+            'value' => $meta_value,
+            'compare' => $filter['compare'] ?? '=',
+            'filter_key' => $filter['meta_key'],
+        ];
+    }
+
+    public function get_query_string_filter($args){
+
+        if( !$this->settings['query_strings'] ) return false;
+
+        $filter_key = $this->get_filter_key($args);
+        
+        if( isset($_GET['filter_'.$filter_key]) ) {
+            return $_GET['filter_'.$filter_key];
+        }
+
+        return false;
     }
 
 }

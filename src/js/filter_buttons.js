@@ -12,7 +12,7 @@ export default class Filter_Buttons {
         Object.keys(options).forEach(key=>{
             this.options[key] = options[key];
         })
-
+        
         this.init();
     }
 
@@ -35,6 +35,7 @@ export default class Filter_Buttons {
         this.value = this.multiple ? [] : '';
 
         items.forEach(item=>{
+
             item.addEventListener('click', ()=>{
                 if( this.multiple ) {
                     this.on_click_multiple(item);
@@ -43,7 +44,9 @@ export default class Filter_Buttons {
                     this.on_click_single(item);
                 }
             })
-        })
+
+            this.check_initial_selected(item);
+        }) 
     }
 
     on_click_single(item){
@@ -115,6 +118,20 @@ export default class Filter_Buttons {
         let index_to_remove = this.value.indexOf(value);
         if( index_to_remove == -1 ) return;
         this.value.splice(index_to_remove, 1);
+    }
+
+    check_initial_selected(item){
+
+        if( !item.classList.contains('selected') ) return;
+        
+        if( this.multiple ) {
+            this.add_value(item.dataset.value)
+        }
+        else {
+            // single
+            this.value = item.dataset.value;
+            this.current = item;
+        }
     }
     
 }

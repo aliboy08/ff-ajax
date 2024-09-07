@@ -7,6 +7,8 @@ class Indicator {
         this.key = this.get_key();
         this.multiple = el.dataset.multiple ?? false;
         this.html = this.multiple ? {} : null;
+
+        this.check_initial_selected();
     }
 
     update(value){
@@ -73,6 +75,8 @@ class Indicator {
     
     update_multiple(){
 
+        console.log('update_multiple', this.value)
+
         this.value.forEach(value=>{
             if( this.html[value] == 'undefined' || !this.html[value] ) {
                 this.html[value] = this.add_html(value);
@@ -127,6 +131,20 @@ class Indicator {
         
         if( typeof this.on_remove == 'function' ) {
             this.on_remove(this.value);
+        }
+    }
+
+    check_initial_selected(){
+        let initial_selected = this.el.dataset.initial_selected;
+        if( !initial_selected ) return;
+
+        if( this.multiple ) {
+            this.value = initial_selected.split(',');
+            this.update_multiple();
+        }
+        else {
+            // single
+            this.update_single(initial_selected);
         }
     }
 }

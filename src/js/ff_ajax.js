@@ -41,6 +41,7 @@ export default class FF_Ajax {
             query_args: this.query_args,
             query_on_change: this.options.query_on_change ?? true,
             indicators_container: this.options.indicators ?? 'default',
+            query_strings: this.options.query_strings ?? false,
         });
     }
     

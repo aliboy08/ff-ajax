@@ -11,39 +11,47 @@ $settings = [
     'initial_query' => true,
     'filters' => '.ajax_filters',
     'indicators' => '.filter_indicators',
+    'query_strings' => true,
 ];
 
 $ff_ajax = new \FF_Ajax($settings);
 
 echo '<div class="ajax_filters">';
 
-    $ff_ajax->filter_dropdown([
-        'taxonomy' => 'category',
-        'placeholder' => 'Category',
-        'exclude' => ['uncategorized'],
-        'multiple' => true,
-    ]);
+    // $ff_ajax->filter_buttons([
+    //     'taxonomy' => 'category',
+    //     // 'multiple' => true,
+    // ]);
 
-    $choices = [
-        'format_1' => 'Format 1',
-        'format_2' => 'Format 2',
-        'format_3' => 'Format 3',
-    ];
-    $ff_ajax->filter_dropdown([
-        'meta_key' => 'format',
-        'placeholder' => 'Format',
-        'choices' => $choices,
-    ]);
+    // $field = get_field_object('field_66dc24e4edf72');
+    // $ff_ajax->filter_buttons([
+    //     'meta_key' => 'color',
+    //     // 'multiple' => true,
+    //     'choices' => $field['choices'],
+    // ]);
+    
+    // $ff_ajax->filter_dropdown([
+    //     'taxonomy' => 'category',
+    //     'placeholder' => 'Category',
+    //     'exclude' => ['uncategorized'],
+    //     'multiple' => true,
+    // ]);
 
-    $ff_ajax->filter_buttons([
-        'taxonomy' => 'category',
-        'multiple' => true,
-    ]);
+    // $choices = [
+    //     'format_1' => 'Format 1',
+    //     'format_2' => 'Format 2',
+    //     'format_3' => 'Format 3',
+    // ];
+    // $ff_ajax->filter_dropdown([
+    //     'meta_key' => 'format',
+    //     'placeholder' => 'Format',
+    //     'choices' => $choices,
+    // ]);
 
-    $ff_ajax->filter_checkbox([
-        'meta_key' => 'featured',
-        'label' => 'Meta - checkbox - Featured',
-    ]);
+    // $ff_ajax->filter_checkbox([
+    //     'meta_key' => 'featured',
+    //     'label' => 'Meta - checkbox - Featured',
+    // ]);
 
     $ff_ajax->filter_checkboxes([
         'taxonomy' => 'category',
@@ -104,10 +112,13 @@ echo '<div class="ajax_filters">';
             ],
         ],
     ]);
+
 echo '</div>';
 
 echo '<div class="filter_indicators"></div>';
 
-echo '<div id="'. $ff_ajax->id .'" class="ff_ajax" '. $ff_ajax->settings_attr() .'>';
+$ff_ajax->initial_query();
+
+echo '<div class="ff_ajax" '. $ff_ajax->settings_attr() .'>';
     $ff_ajax->render();
 echo '</div>';

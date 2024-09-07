@@ -24,6 +24,7 @@ export default class Filter_Checkboxes {
                 }
             });
 
+            this.check_initial_selected(checkbox);
         })
         
     }
@@ -38,5 +39,11 @@ export default class Filter_Checkboxes {
         const index_to_remove = this.filter_value.indexOf(value);
         if( index_to_remove == -1 ) return;
         this.filter_value.splice(index_to_remove, 1);
+    }
+
+    check_initial_selected(checkbox){
+        if( checkbox.checked ) {
+            this.add_value(checkbox.value);
+        }
     }
 }
