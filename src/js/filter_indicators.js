@@ -74,9 +74,7 @@ class Indicator {
     }
     
     update_multiple(){
-
-        console.log('update_multiple', this.value)
-
+        
         this.value.forEach(value=>{
             if( this.html[value] == 'undefined' || !this.html[value] ) {
                 this.html[value] = this.add_html(value);

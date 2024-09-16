@@ -123,6 +123,10 @@ export default class Filters {
         if( this.query_strings ) {
             apply_query_string('filter_'+field.filter_key, value);
         }
+
+        if( typeof this.on_field_change === 'function' ) {
+            this.on_field_change(field, type);
+        }
     }
     
     update_query_args(field){
