@@ -125,7 +125,7 @@ export default class Filters {
         }
 
         if( typeof this.on_field_change === 'function' ) {
-            this.on_field_change(field, type);
+            this.on_field_change(field, value);
         }
     }
     
