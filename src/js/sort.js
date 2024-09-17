@@ -49,18 +49,23 @@ export default class Sort {
 
     query(){
 
-        const ff_ajax = this.options.ff_ajax;
+        this.options.ff_ajax.query_render(data=>{
+            if( typeof this.on_query_response === 'function' ) {
+                this.on_query_response(data);
+            }
+        })
 
-        ff_ajax.total_posts = 0;
-        ff_ajax.query_args.offset = 0;
+        // const ff_ajax = this.options.ff_ajax;
 
-        ff_ajax.container.classList.add('loading');
-        ff_ajax.query((data)=>{
-            ff_ajax.render_replace(data);
-            ff_ajax.load_more.update(data)
-            ff_ajax.container.classList.remove('loading');
-        });
+        // ff_ajax.total_posts = 0;
+        // ff_ajax.query_args.offset = 0;
 
+        // ff_ajax.container.classList.add('loading');
+        // ff_ajax.query((data)=>{
+        //     ff_ajax.render_replace(data);
+        //     ff_ajax.load_more.update(data)
+        //     ff_ajax.container.classList.remove('loading');
+        // });
     }
 
 }

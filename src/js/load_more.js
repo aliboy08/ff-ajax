@@ -45,6 +45,11 @@ export default class Load_More {
         this.button.classList.add('loading');
         ff_ajax.container.classList.add('loading_load_more');
         ff_ajax.query((data)=>{
+
+            if( typeof this.on_query_response === 'function' ) {
+                this.on_query_response(data);
+            }
+            
             ff_ajax.render_append(data);
             this.button.classList.remove('loading');
             ff_ajax.container.classList.remove('loading_load_more');

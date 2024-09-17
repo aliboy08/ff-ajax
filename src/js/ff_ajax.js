@@ -105,7 +105,7 @@ export default class FF_Ajax {
             alert(error);
         });
     }
-
+    
     render_replace(data){
         
         if( !data.total_posts ) {
@@ -167,6 +167,24 @@ export default class FF_Ajax {
         if( typeof this.after_render === 'function' ) {
             this.after_render(html);
         }
+    }
+
+    query_render(cb = null){
+
+        this.total_posts = 0;
+        this.query_args.offset = 0;
+        
+        this.container.classList.add('loading');
+        this.query((data)=>{
+
+            if( typeof cb === 'function' ) {
+                this.cb(data);
+            }
+    
+            this.render_replace(data);
+            this.load_more.update(data)
+            this.container.classList.remove('loading');
+        });
     }
 
     init_load_more(){
