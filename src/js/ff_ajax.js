@@ -178,7 +178,7 @@ export default class FF_Ajax {
         this.query((data)=>{
 
             if( typeof cb === 'function' ) {
-                this.cb(data);
+                cb(data);
             }
     
             this.render_replace(data);
