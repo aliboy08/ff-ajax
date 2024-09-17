@@ -51,8 +51,7 @@ class FF_Ajax {
     
     public function render(){
         
-        global $ff_ajax;
-        $ff_ajax->enqueue();
+        $this->enqueue_script();
 
         if( $this->settings['initial_query'] ) {
 
@@ -442,6 +441,11 @@ class FF_Ajax {
         }
 
         return false;
+    }
+
+    public function enqueue_script(){
+        global $ff_ajax;
+        $ff_ajax->enqueue();
     }
 
 }
