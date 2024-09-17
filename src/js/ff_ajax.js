@@ -66,7 +66,7 @@ export default class FF_Ajax {
         
         if( typeof this.custom_filters !== 'undefined' ) {
             if( typeof this.custom_filters === 'object' ) {
-                this.custom_filters = JSON.stringify(this.query_args);
+                this.custom_filters = JSON.stringify(this.custom_filters);
             }
             data.append('custom_filters', this.custom_filters);
         }
