@@ -8,7 +8,6 @@ function ff_ajax_action(){
     $payload = $_POST;
 
     $response = [
-        'payload' => $payload,
         'request_time' => $payload['request_time'],
     ];
 
@@ -52,6 +51,8 @@ function ff_ajax_action(){
     $response['have_more_posts'] = ff_ajax_have_more_posts($query_args, $total_posts);
 
     $response = apply_filters('ff_ajax_response', $response, $payload, $query);
+
+    $response['payload'] = $payload;
 
     wp_send_json($response);
 }

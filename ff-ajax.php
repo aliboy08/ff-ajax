@@ -44,4 +44,4 @@ include_once 'functions.php';
 include_once 'class-ff-ajax.php';
 
 // test
-// include_once 'test/init.php';
+include_once 'test/init.php';
