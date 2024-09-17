@@ -32,14 +32,14 @@ export default class FF_Ajax {
     
     init_filters(){
 
-        this.filters_container = this.options.filters ?? this.container;
+        this.filters_container = this.options.filters_container ?? this.container;
 
         this.filters = new Filters({
             ff_ajax: this,
             container: this.filters_container,
             query_args: this.query_args,
             query_on_change: this.options.query_on_change ?? true,
-            indicators_container: this.options.indicators ?? 'default',
+            indicators_container: this.options.indicators_container ?? 'default',
             query_strings: this.options.query_strings ?? false,
         });
     }

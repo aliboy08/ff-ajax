@@ -10,8 +10,8 @@ $settings = [
     'item_template' => __DIR__ . '/item-sample.php',
     'query_args' => $query_args,
     'initial_query' => true,
-    'filters' => '.ajax_filters',
-    'indicators' => '.filter_indicators',
+    'filters_container' => '.ajax_filters',
+    'indicators_container' => '.filter_indicators',
     'query_strings' => true,
 ];
 
