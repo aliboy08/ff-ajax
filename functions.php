@@ -32,6 +32,8 @@ function ff_ajax_action(){
         $custom_data = $_POST['custom_data'];
     }
 
+    $query_args = apply_filters('ff_ajax_query_args', $query_args, $_POST);
+
     $query = new WP_Query($query_args);
     ob_start();
     foreach( $query->posts as $post ) {
