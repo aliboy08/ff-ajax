@@ -68,6 +68,10 @@ export default class FF_Ajax {
 
         data.append('custom_data', this.options.custom_data);
 
+        if( typeof this.custom_filters !== 'undefined' ) {
+            data.append('custom_filters', this.custom_filters);
+        }
+
         data.append('request_time', this.request_time);
         
         if( typeof this.options.custom_query !== 'undefined' ) {
