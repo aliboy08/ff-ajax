@@ -5,34 +5,40 @@ function ff_ajax_action(){
 
     if ( ! wp_verify_nonce( $_POST['nonce'], 'ff_ajax' ) ) die();
 
+    $payload = $_POST;
+
     $response = [
-        'payload' => $_POST,
-        'request_time' => $_POST['request_time'],
+        'payload' => $payload,
+        'request_time' => $payload['request_time'],
     ];
+
+    $query_args = json_decode(stripslashes($payload['query_args']), true);
+    $payload['query_args'] = $query_args;
+
+    if( isset($payload['custom_data']) ) {
+        $custom_data = json_decode(stripslashes($payload['custom_data']), true);
+    }
+
+    if( isset($payload['custom_filters']) ) {
+        $payload['custom_filters'] = json_decode(stripslashes($payload['custom_filters']), true);
+    }
     
-    if( isset($_POST['custom_query']) ) {
+    if( isset($payload['custom_action']) ) {
         // Custom
         ob_start();
-        do_action('ff_ajax_'. $_POST['ajax_action'], $_POST);
+        do_action('ff_ajax_'. $payload['custom_action'], $payload);
         $response['html'] = ob_get_clean();
         wp_send_json($response);
     }
 
-    $item_template = $_POST['item_template'];
+    $item_template = $payload['item_template'];
 
     if( !file_exists( $item_template ) ) {
         $response['error'] = 'template_not_found';
         wp_send_json($response);
     }
-
-    // Standard
-    $query_args = json_decode(stripslashes($_POST['query_args']), true);
     
-    if( isset($_POST['custom_data']) ) {
-        $custom_data = $_POST['custom_data'];
-    }
-
-    $query_args = apply_filters('ff_ajax_query_args', $query_args, $_POST);
+    $query_args = apply_filters('ff_ajax_query_args', $query_args, $payload);
 
     $query = new WP_Query($query_args);
     ob_start();
@@ -41,11 +47,11 @@ function ff_ajax_action(){
     }
     $response['html'] = ob_get_clean();
     
-    $total_posts = count($query->posts) + $_POST['total_posts'];
+    $total_posts = count($query->posts) + $payload['total_posts'];
     $response['total_posts'] = $total_posts;
     $response['have_more_posts'] = ff_ajax_have_more_posts($query_args, $total_posts);
 
-    $response = apply_filters('ff_ajax_response', $response, $_POST, $query);
+    $response = apply_filters('ff_ajax_response', $response, $payload, $query);
 
     wp_send_json($response);
 }

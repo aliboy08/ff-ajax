@@ -22,7 +22,6 @@ export default class FF_Ajax {
 
     init_query(){
         this.total_posts = 0;
-        this.action = this.options.action ?? '';
         this.query_args = this.options.query_args;
         this.query_timeout = null;
         this.query_timeout_duration = 100;
@@ -60,22 +59,26 @@ export default class FF_Ajax {
 
         data.append('action', 'ff_ajax_action');
         data.append('nonce', ff_ajax_data.nonce);
-        data.append('ajax_action', this.action);
         data.append('query_args', JSON.stringify(this.query_args));
         data.append('total_posts', this.total_posts);
         data.append('item_template', this.item_template);
         data.append('id', this.options.id);
-
-        data.append('custom_data', this.options.custom_data);
-
+        
         if( typeof this.custom_filters !== 'undefined' ) {
+            if( typeof this.custom_filters === 'object' ) {
+                this.custom_filters = JSON.stringify(this.query_args);
+            }
             data.append('custom_filters', this.custom_filters);
         }
 
         data.append('request_time', this.request_time);
         
-        if( typeof this.options.custom_query !== 'undefined' ) {
-            data.append('custom_query', 1);
+        if( typeof this.options.custom_action !== 'undefined' && this.options.custom_action ) {
+            data.append('custom_action', this.options.custom_action);
+        }
+
+        if( typeof this.options.custom_data !== 'undefined' ) {
+            data.append('custom_data', this.options.custom_action);
         }
         
         fetch(ff_ajax_data.ajax_url, {
