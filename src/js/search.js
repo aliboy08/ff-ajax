@@ -100,6 +100,11 @@ export default class Search {
 
         ff_ajax.container.classList.add('loading');
         ff_ajax.query((data)=>{
+
+            if( typeof this.on_query_response === 'function' ) {
+                this.on_query_response(data);
+            }
+            
             ff_ajax.render_replace(data);
             ff_ajax.load_more.update(data)
             ff_ajax.container.classList.remove('loading');
