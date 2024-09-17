@@ -88,6 +88,10 @@ export default class FF_Ajax {
 
             // console.log('query response', data)
 
+            if( typeof this.on_query_response === 'function' ) {
+                this.on_query_response(data);
+            }
+
             if( typeof on_complete == 'function' ) on_complete(data);
         })
         .catch((error) => {
