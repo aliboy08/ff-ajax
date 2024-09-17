@@ -10,6 +10,7 @@ class FF_Ajax {
         $this->settings = $settings;
 
         $default_settings = [
+            'id' => 'default',
             'initial_query' => false,
             'filter_on_load' => false,
             'query_on_change' => true,

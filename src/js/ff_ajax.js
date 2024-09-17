@@ -64,6 +64,7 @@ export default class FF_Ajax {
         data.append('query_args', JSON.stringify(this.query_args));
         data.append('total_posts', this.total_posts);
         data.append('item_template', this.item_template);
+        data.append('id', this.options.id);
 
         data.append('custom_data', this.options.custom_data);
 
@@ -84,6 +85,9 @@ export default class FF_Ajax {
                 // old request, ignore
                 return;
             }
+
+            // console.log('query response', data)
+
             if( typeof on_complete == 'function' ) on_complete(data);
         })
         .catch((error) => {

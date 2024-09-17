@@ -6,6 +6,7 @@ $query_args = [
 ];
 
 $settings = [
+    'id' => 'ajax_sample_1',
     'item_template' => __DIR__ . '/item-sample.php',
     'query_args' => $query_args,
     'initial_query' => true,

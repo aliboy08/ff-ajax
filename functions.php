@@ -6,7 +6,7 @@ function ff_ajax_action(){
     if ( ! wp_verify_nonce( $_POST['nonce'], 'ff_ajax' ) ) die();
 
     $response = [
-        // 'payload' => $_POST,
+        'payload' => $_POST,
         'request_time' => $_POST['request_time'],
     ];
     
@@ -42,6 +42,8 @@ function ff_ajax_action(){
     $total_posts = count($query->posts) + $_POST['total_posts'];
     $response['total_posts'] = $total_posts;
     $response['have_more_posts'] = ff_ajax_have_more_posts($query_args, $total_posts);
+
+    $response = apply_filters('ff_ajax_response', $response, $_POST, $query);
 
     wp_send_json($response);
 }
