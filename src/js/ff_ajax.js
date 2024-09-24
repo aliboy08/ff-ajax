@@ -99,7 +99,7 @@ export default class FF_Ajax {
                 return;
             }
 
-            console.log('query response', data)
+            // console.log('query response', data)
 
             if( typeof this.on_query_response === 'function' ) {
                 this.on_query_response(data);

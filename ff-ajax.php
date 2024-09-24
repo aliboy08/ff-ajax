@@ -3,7 +3,7 @@
  * Plugin Name: FF Ajax
  * Plugin URI: https://www.fivebyfive.com.au/
  * Description: Simplify development involving ajax
- * Version: 2.2.0
+ * Version: 2.2.1
  * Author: Alistair Ponce
  * Author URI: https://github.com/aliboy08/
  * License: GPL v2 or later
