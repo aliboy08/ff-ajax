@@ -19,32 +19,34 @@ export default class Sort {
     }
 
     apply_sort(){
-        this.update_query_args();
+        this.update_extra_query_args();
         this.query();
     }
 
-    update_query_args(){
+    update_extra_query_args(){
 
-        const query_args = this.options.ff_ajax.query_args;
+        const extra_query_args = this.options.ff_ajax.extra_query_args;
 
         if( !this.selected.value ) {
-            delete query_args.orderby;
-            delete query_args.order;
-        }
-        else {
-            const sort_args = [
-                'meta_key',
-                'orderby',
-                'order',
-            ];
-            for( let i = 0; i < sort_args.length; i++ ) {
-                let sort_arg = this.selected.dataset[sort_args[i]];
-                if( typeof sort_arg !== 'undefined' && sort_arg ) {
-                    query_args[sort_args[i]] = sort_arg;
-                } 
-            }
+            delete extra_query_args.sort;
+            return;
         }
         
+        const sort_keys = [
+            'meta_key',
+            'orderby',
+            'order',
+        ];
+
+        extra_query_args.sort = {};
+
+        for( let i = 0; i < sort_keys.length; i++ ) {
+            let sort_arg = this.selected.dataset[sort_keys[i]];
+            if( typeof sort_arg !== 'undefined' && sort_arg ) {
+                extra_query_args.sort[sort_keys[i]] = sort_arg;
+            } 
+        }
+    
     }
 
     query(){
@@ -55,17 +57,6 @@ export default class Sort {
             }
         })
 
-        // const ff_ajax = this.options.ff_ajax;
-
-        // ff_ajax.total_posts = 0;
-        // ff_ajax.query_args.offset = 0;
-
-        // ff_ajax.container.classList.add('loading');
-        // ff_ajax.query((data)=>{
-        //     ff_ajax.render_replace(data);
-        //     ff_ajax.load_more.update(data)
-        //     ff_ajax.container.classList.remove('loading');
-        // });
     }
 
 }

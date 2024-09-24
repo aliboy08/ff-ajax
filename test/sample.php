@@ -12,12 +12,18 @@ $settings = [
     'initial_query' => true,
     'filters_container' => '.ajax_filters',
     'indicators_container' => '.filter_indicators',
-    'query_strings' => true,
+    'total_posts_count' => '.total_posts_count .count',
+    // 'query_strings' => true,
 ];
 
 $ff_ajax = new \FF_Ajax($settings);
 
 echo '<div class="ajax_filters">';
+
+    // $ff_ajax->filter_buttons([
+    //     'taxonomy' => 'category',
+    //     'multiple' => true,
+    // ]);
 
     // $ff_ajax->filter_buttons([
     //     'taxonomy' => 'category',
@@ -31,12 +37,12 @@ echo '<div class="ajax_filters">';
     //     'choices' => $field['choices'],
     // ]);
     
-    // $ff_ajax->filter_dropdown([
-    //     'taxonomy' => 'category',
-    //     'placeholder' => 'Category',
-    //     'exclude' => ['uncategorized'],
-    //     'multiple' => true,
-    // ]);
+    $ff_ajax->filter_dropdown([
+        'taxonomy' => 'category',
+        'placeholder' => 'Category',
+        'exclude' => ['uncategorized'],
+        'multiple' => true,
+    ]);
 
     // $choices = [
     //     'format_1' => 'Format 1',
@@ -54,11 +60,20 @@ echo '<div class="ajax_filters">';
     //     'label' => 'Meta - checkbox - Featured',
     // ]);
 
-    $ff_ajax->filter_checkboxes([
-        'taxonomy' => 'category',
-        'multiple' => true,
-    ]);
+    // $ff_ajax->filter_checkboxes([
+    //     'taxonomy' => 'category',
+    //     'multiple' => true,
+    // ]);
 
+    ?>
+    <!-- <div class="filter-con filter_price" data-query_type="meta_query" data-meta_key="price">
+        <button data-value="0,100">0-100</button>
+        <button data-value="100,200">100-200</button>
+        <button data-value="200,300">200-300</button>
+        <button data-value="300,400">300-400</button>
+    </div> -->
+    <?php
+    
     $ff_ajax->search_field([
         'placeholder' => 'Search...',
         'with_clear' => true,
@@ -120,6 +135,45 @@ echo '<div class="filter_indicators"></div>';
 
 $ff_ajax->initial_query();
 
+echo '<div class="total_posts_count">Posts count: <span class="count">...</span></div>';
+
 echo '<div class="ff_ajax" '. $ff_ajax->settings_attr() .'>';
     $ff_ajax->render();
 echo '</div>';
+
+?>
+<script>
+window.addEventListener('load',()=>{
+    let field = document.querySelector('.filter_price');
+    if( !field ) return;
+ 
+    let ff_ajax = document.querySelector('.ff_ajax').ff_ajax;
+    console.log('ajax', ff_ajax)
+
+    field.querySelectorAll('button').forEach(button=>{
+        let value = button.dataset.value.split(',');
+        let min = parseInt(value[0]);
+        let max = parseInt(value[1]);
+        button.addEventListener('click', ()=>{
+
+            // price from
+            ff_ajax.filters.update_filter('price_from', 'meta_query', {
+                key: 'price',
+                value: min,
+                type: 'NUMERIC',
+                compare: '>=',
+            });
+
+            // price to
+            ff_ajax.filters.update_filter('price_to', 'meta_query', {
+                key: 'price',
+                value: max,
+                type: 'NUMERIC',
+                compare: '<=',
+            });
+
+            ff_ajax.filters.query();
+        })
+    })
+})
+</script>

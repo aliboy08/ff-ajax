@@ -13,11 +13,14 @@ export default class FF_Ajax {
 
         this.loop = this.container.querySelector('.loop');
 
+        this.extra_query_args = {};
+
         this.init_query();
         this.init_filters();
         this.init_load_more();
         this.init_search();
         this.init_sort();
+        this.init_total_posts_count();
     }
 
     init_query(){
@@ -26,7 +29,7 @@ export default class FF_Ajax {
         this.query_timeout = null;
         this.query_timeout_duration = 100;
         this.item_template = this.options.item_template;
-
+        
         this.request_time = null;
     }
     
@@ -37,7 +40,6 @@ export default class FF_Ajax {
         this.filters = new Filters({
             ff_ajax: this,
             container: this.filters_container,
-            query_args: this.query_args,
             query_on_change: this.options.query_on_change ?? true,
             indicators_container: this.options.indicators_container ?? 'default',
             query_strings: this.options.query_strings ?? false,
@@ -71,6 +73,8 @@ export default class FF_Ajax {
             data.append('custom_filters', this.custom_filters);
         }
 
+        data.append('extra_query_args', JSON.stringify(this.extra_query_args));
+
         data.append('request_time', this.request_time);
         
         if( typeof this.options.custom_action !== 'undefined' && this.options.custom_action ) {
@@ -80,6 +84,8 @@ export default class FF_Ajax {
         if( typeof this.options.custom_data !== 'undefined' ) {
             data.append('custom_data', this.options.custom_action);
         }
+        
+        data.append('with_total_posts_count', this.with_total_posts_count);
         
         fetch(ff_ajax_data.ajax_url, {
             method: "POST",
@@ -93,7 +99,7 @@ export default class FF_Ajax {
                 return;
             }
 
-            // console.log('query response', data)
+            console.log('query response', data)
 
             if( typeof this.on_query_response === 'function' ) {
                 this.on_query_response(data);
@@ -184,6 +190,7 @@ export default class FF_Ajax {
             this.render_replace(data);
             this.load_more.update(data)
             this.container.classList.remove('loading');
+            this.render_total_posts_count(data);
         });
     }
 
@@ -232,4 +239,25 @@ export default class FF_Ajax {
             field,
         });
     }
+
+    init_total_posts_count(){
+
+        let total_posts_count = this.options.total_posts_count ?? null;
+
+        if( !total_posts_count ) {
+            this.with_total_posts_count = '';
+            return;
+        }
+
+        this.with_total_posts_count = 1;
+
+        this.total_posts_count_el = document.querySelector(total_posts_count);
+    }
+
+    render_total_posts_count(data){
+        if( !this.with_total_posts_count ) return;
+        if( typeof data.total_posts_count === 'undefined' ) return;
+        this.total_posts_count_el.textContent = data.total_posts_count;
+    }
+    
 }

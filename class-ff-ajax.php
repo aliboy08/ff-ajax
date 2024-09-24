@@ -25,9 +25,6 @@ class FF_Ajax {
 
         // normalize path - fix for windows path
         $this->settings['item_template'] = str_replace('\\', '/', $this->settings['item_template']);
-
-        // $this->initial_query();
-        
     }
 
     public function initial_query(){
@@ -66,10 +63,6 @@ class FF_Ajax {
             echo '<div class="loop"><div class="loading_text">Loading...</div></div>';
         }
        
-    }
-    
-    public function have_more_posts($args, $offset) {
-        return ff_ajax_have_more_posts($args, $offset);
     }
     
     public function filter_dropdown($args){

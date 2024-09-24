@@ -40,18 +40,20 @@ export default class Search {
         this.last_value = value;
         this.value = value;
     
-        this.update_query_args();
+        this.update_extra_query_args();
         this.query();
         this.init_clear();
     }
 
-    update_query_args(){
+    update_extra_query_args(){
 
+        const extra_query_args = this.options.ff_ajax.extra_query_args;
+        
         if( this.value ) {
-            this.ff_ajax.query_args.s = this.value;
+            extra_query_args.search = this.value;
         }
         else {
-            delete this.ff_ajax.query_args.s;
+            delete extra_query_args.search;
         }
     }
 
@@ -100,23 +102,6 @@ export default class Search {
             }
         })
 
-        // const ff_ajax = this.options.ff_ajax;
-
-        // ff_ajax.total_posts = 0;
-        // ff_ajax.query_args.offset = 0;
-
-        // ff_ajax.container.classList.add('loading');
-        // ff_ajax.query((data)=>{
-
-        //     if( typeof this.on_query_response === 'function' ) {
-        //         this.on_query_response(data);
-        //     }
-
-        //     ff_ajax.render_replace(data);
-        //     ff_ajax.load_more.update(data)
-        //     ff_ajax.container.classList.remove('loading');
-        // });
     }
 
 }
-
