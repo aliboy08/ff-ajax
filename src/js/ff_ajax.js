@@ -94,12 +94,11 @@ export default class FF_Ajax {
         })
         .then((response) => response.json())
         .then((data) => {
+
             if( data.request_time < this.request_time ) {
                 // old request, ignore
                 return;
             }
-
-            // console.log('query response', data)
 
             if( typeof this.on_query_response === 'function' ) {
                 this.on_query_response(data);
@@ -108,7 +107,8 @@ export default class FF_Ajax {
             if( typeof on_complete == 'function' ) on_complete(data);
         })
         .catch((error) => {
-            alert(error);
+            console.log('ajax error', error)
+            // alert(error);
         });
     }
     
@@ -137,7 +137,7 @@ export default class FF_Ajax {
     }
 
     render_append(data){
-
+        
         if( !data.total_posts ) {
             this.render_no_results();
             return;
@@ -166,12 +166,13 @@ export default class FF_Ajax {
     }
 
     render_no_results(){
-
+        
         let no_results_html = this.options.no_results_html ?? 'No results...';
+
         this.loop.innerHTML = '<div class="no_results">'+ no_results_html + '</div>';
 
         if( typeof this.after_render === 'function' ) {
-            this.after_render(html);
+            this.after_render(no_results_html);
         }
     }
 
