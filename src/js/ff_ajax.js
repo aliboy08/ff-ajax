@@ -13,6 +13,10 @@ export default class FF_Ajax {
 
         this.loop = this.container.querySelector('.loop');
 
+        this.hooks = {
+            after_render: [],
+        }
+
         this.extra_query_args = {};
 
         this.init_query();
@@ -131,9 +135,7 @@ export default class FF_Ajax {
 
         this.loop.innerHTML = html;
         
-        if( typeof this.after_render === 'function' ) {
-            this.after_render(html);
-        }
+        this.hooks.after_render.forEach(action=>action(html))
     }
 
     render_append(data){
@@ -160,9 +162,7 @@ export default class FF_Ajax {
         })
         temp_container.remove();
         
-        if( typeof this.after_render === 'function' ) {
-            this.after_render(html);
-        }
+        this.hooks.after_render.forEach(action=>action(html))
     }
 
     render_no_results(){
@@ -171,9 +171,7 @@ export default class FF_Ajax {
 
         this.loop.innerHTML = '<div class="no_results">'+ no_results_html + '</div>';
 
-        if( typeof this.after_render === 'function' ) {
-            this.after_render(no_results_html);
-        }
+        this.hooks.after_render.forEach(action=>action(html))
     }
 
     query_render(cb = null){
