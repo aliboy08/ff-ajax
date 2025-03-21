@@ -13,6 +13,7 @@ export default class Filters {
             on_update: [],
             on_filter_dropdown_init: [],
             on_filter_dropdown_change: [],
+            modify_query_args: [],
         }
 
         this.container = get_el(args.container);
@@ -112,8 +113,7 @@ export default class Filters {
         
         this.fields.push(field);
     }
-
-
+    
     get_filter_key(field){
 
         if( typeof field.dataset.filter_key !== 'undefined' ) {
@@ -179,7 +179,9 @@ export default class Filters {
             if( !has_value(field) ) return;
             const type = field.dataset.query_type;
             add_clause[type](field, query_args);
-        })
+        });
+        
+        this.hooks.modify_query_args.forEach(action=>action(query_args));
         
         return query_args;
     }
