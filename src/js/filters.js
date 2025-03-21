@@ -195,14 +195,18 @@ export default class Filters {
 }
 
 function has_value(field) {
+
     if( Array.isArray(field.filter_value) ) {
         return field.filter_value.length;
     }
+
     return field.filter_value;
 }
 
 function add_unqiue(value, arr){
-
+    
+    if( !value ) return;
+    
     if( Array.isArray(value) ) {
         value.forEach(value_item=>{
             if( !arr.includes(value_item) ) {

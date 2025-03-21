@@ -67,7 +67,7 @@ export default class FF_Ajax {
         .then((response) => response.json())
         .then((response_data) => {
 
-            // console.log('query_res', response_data)
+            // console.log('query:res', response_data)
 
             if( response_data.request_time < request_time ) {
                 // old request, ignore
