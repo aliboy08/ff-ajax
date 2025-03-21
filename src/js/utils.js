@@ -15,25 +15,30 @@ export function create_dom(html) {
 	return temp_element.children[0];
 }
 
-export function apply_query_string(key, value) {
+export function get_el(element, multiple = false, parent = document) {
+	if ( typeof element === 'string' ) {
+		if (multiple) {
+			return parent.querySelectorAll(element);
+		} else {
+			return parent.querySelector(element);
+		}
+	}
+	return element;
+}
 
-	const url = new URL(window.location.href);
+export function create_div(class_name, append_to = null, text = null){
 
-    if( typeof value === 'object' ) {
+    const div = document.createElement('div');
+    div.className = class_name;
 
-        if ( !value.length ) {
-            url.searchParams.delete(key);
-        } else {
-            url.searchParams.set(key, value.join(','));
+    if( append_to ) {
+        if( typeof append_to === 'string' ) {
+            append_to = document.querySelector(append_to);
         }
-
-    } else {
-        if (!value) {
-            url.searchParams.delete(key);
-        } else {
-            url.searchParams.set(key, value);
-        }
+        append_to.append(div);
     }
-    
-	window.history.replaceState(null, document.title, url.href);
+
+    if( text ) div.textContent = text;
+
+    return div;
 }

@@ -1,3 +1,5 @@
+import { get_el } from './utils';
+
 export default class Filter_Buttons {
 
     constructor(options){
@@ -18,23 +20,15 @@ export default class Filter_Buttons {
 
     init(){
         
-        let container = this.options.container;
-        if( typeof container == 'string' ) {
-            container = document.querySelector(container);
-        }
-        this.container = container;
+        this.container = get_el(this.options.container);
+        
+        this.items = get_el(this.options.items, true, this.container);
 
-        let items = this.options.items;
-        if( typeof items == 'string' ) {
-            items = container.querySelectorAll(items);
-        }
-        this.items = items;
-
-        this.multiple = this.options.multiple;
+        this.multiple = this.options.multiple ?? false;
         
         this.value = this.multiple ? [] : '';
 
-        items.forEach(item=>{
+        this.items.forEach(item=>{
 
             item.addEventListener('click', ()=>{
                 if( this.multiple ) {

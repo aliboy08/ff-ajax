@@ -1,60 +1,57 @@
+import { get_el, create_div } from './utils';
+
 export default class Search {
 
-    constructor(options){
-        this.options = options;
-        this.ff_ajax = options.ff_ajax;
-        this.timeout = null;
-        this.timeout_duration = options.timeout_duration ?? 1000;
+    constructor(args){
+
+        this.hooks = {
+            on_update: [],
+        }
+        
+        this.options = args;
+        this.value = null;
         this.last_value = null;
         this.clear_button = null;
-        this.init_field();
+        this.submit_timeout = null;
+
+        this.init_input(args);
     }
 
-    init_field(){
+    init_input(args){
 
-        this.field = this.options.field;
-        if( typeof this.field == 'string' ) {
-            this.field = document.querySelector(this.field);
-        }
+        this.input = get_el(args.field);
+        
+        let typing_timeout = null;
 
-        this.field.addEventListener('keyup', (e)=>{
+        this.input.addEventListener('keyup', (e)=>{
             
-            clearTimeout(this.timeout);
+            clearTimeout(typing_timeout);
 
             if( e.code.indexOf('Enter') !== -1 ) {
-                this.submit(e.target.value);
+                this.submit_debounce();
                 return;
             }
 
-            this.timeout = setTimeout(()=>{
-                this.submit(e.target.value);
-            }, this.timeout_duration);
-
+            typing_timeout = setTimeout(()=>this.submit_debounce(), args.timeout_duration ?? 1000);
         })
+
+        this.input.addEventListener('change',()=>this.submit_debounce())
     }
 
-    submit(value){
+    submit_debounce(){
+        clearTimeout(this.submit_timeout);
+        this.submit_timeout = setTimeout(()=>this.submit(), 100);
+    }
 
-        if( this.last_value == value ) return;
-
-        this.last_value = value;
-        this.value = value;
-    
-        this.update_extra_query_args();
-        this.query();
+    submit(){
+        this.value = this.input.value;
+        if( this.last_value === this.value ) return;
+        this.last_value = this.value;
         this.init_clear();
-    }
 
-    update_extra_query_args(){
+        const query_args = this.get_query_args();
 
-        const extra_query_args = this.options.ff_ajax.extra_query_args;
-        
-        if( this.value ) {
-            extra_query_args.search = this.value;
-        }
-        else {
-            delete extra_query_args.search;
-        }
+        this.hooks.on_update.forEach(action=>action(query_args));
     }
 
     init_clear(){
@@ -71,10 +68,9 @@ export default class Search {
 
     clear_button_add(){
         
-        this.clear_button = document.createElement('div');
+        this.clear_button = create_div('field_clear');
         this.clear_button.textContent = 'Clear';
-        this.clear_button.classList.add('field_clear');
-        this.field.after(this.clear_button);
+        this.input.after(this.clear_button);
     
         this.clear_button.addEventListener('click', ()=>{
             this.clear();
@@ -89,19 +85,18 @@ export default class Search {
 
     clear(){
         this.clear_button_remove();
-        this.field.value = '';
+        this.input.value = '';
         this.value = '';
         this.submit();
     }
 
-    query(){
+    get_query_args(){
+        const query_args = {};
 
-        this.options.ff_ajax.query_render(data=>{
-            if( typeof this.on_query_response === 'function' ) {
-                this.on_query_response(data);
-            }
-        })
-
+        if( this.value ) {
+            query_args.s = this.value;
+        }
+        
+        return query_args;
     }
-
 }

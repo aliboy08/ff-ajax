@@ -37,15 +37,15 @@ function ff_ajax_action(){
         wp_send_json($response);
     }
 
-    $extra_query_args = json_decode(stripslashes($payload['extra_query_args']), true);
-
-    // $response['extra_query_args'] = $extra_query_args;
-    
     $query_args = apply_filters('ff_ajax_query_args', $query_args, $payload);
 
-    $query_args = ff_ajax_apply_extra_query_args($extra_query_args, $query_args);
-
-    // $response['updated_query_args'] = $query_args;
+    if( isset($payload['extra_query_args']) ) {
+        $extra_query_args = json_decode(stripslashes($payload['extra_query_args']), true);
+        $response['extra_query_args'] = $extra_query_args;
+        $query_args = ff_ajax_apply_extra_query_args($extra_query_args, $query_args);
+    }
+    
+    $response['updated_query_args'] = $query_args;
 
     $query = new WP_Query($query_args);
     ob_start();
@@ -54,14 +54,12 @@ function ff_ajax_action(){
     }
     $response['html'] = ob_get_clean();
     
-    $total_posts = count($query->posts) + $payload['total_posts'];
-    $response['total_posts'] = $total_posts;
-
+    $total_posts = count($query->posts) + $query_args['offset'] ?? 0;
     $have_more_posts = ff_ajax_have_more_posts($query_args, $total_posts);
     $response['have_more_posts'] = $have_more_posts;
     
     if( $payload['with_total_posts_count'] ) {
-        $response['total_posts_count'] = !$have_more_posts ? $total_posts : ff_ajax_get_total_posts_count( $query->request );
+        $response['total_posts_count'] = !$have_more_posts ? $total_posts : ff_ajax_get_total_posts_count($query->request);
     }
 
     $response = apply_filters('ff_ajax_response', $response, $payload, $query);
@@ -93,13 +91,23 @@ function ff_ajax_apply_extra_query_args($extra_query_args, $query_args){
     
     // search
     if( isset($extra_query_args['search']) ) {
-        $query_args['s'] = $extra_query_args['search'];
+        $s = $extra_query_args['search']['s'] ?? '';
+        if( $s ) $query_args['s'] = $s;
     }
 
     // sort
     if( isset($extra_query_args['sort']) ) {
         foreach( $extra_query_args['sort'] as $key => $value ) {
             $query_args[$key] = $value;
+        }
+    }
+
+    // load_more
+    if( isset($extra_query_args['load_more']) ) {
+        $offset = $query_args['offset'] ?? 0;
+        $load_more_offset = $extra_query_args['load_more']['offset'] ?? 0;
+        if( $load_more_offset ) {
+            $query_args['offset'] = $offset + $load_more_offset;
         }
     }
     

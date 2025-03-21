@@ -1,37 +1,38 @@
+import { get_el } from './utils';
+
 import Filter_Buttons from './filter_buttons';
 import Filter_Dropdown from './filter_dropdown';
 import Filter_Checkboxes from './filter_checkboxes';
 import Filter_Indicators from './filter_indicators';
-// import { get_index_key_value, apply_query_string } from './utils';
 
 export default class Filters {
 
-    constructor(options = {}){
-
-        this.options = options;
-
-        if( typeof options.container === 'string') {
-            options.container = document.querySelector(options.container);
-        }
-        this.container = options.container;
-
-        this.query_on_change = this.options.query_on_change ?? true;
-        // this.query_strings = this.options.query_strings ?? false;
-
-        this.filter_args = {};
+    constructor(args = {}){
         
-        this.init_indicators();
+        this.hooks = {
+            on_update: [],
+            on_filter_dropdown_init: [],
+            on_filter_dropdown_change: [],
+        }
+
+        this.container = get_el(args.container);
+        
+        this.init_indicators(args);
         this.init_fields();
     }
 
     init_fields(){
 
         this.fields = [];
-        this.custom_filters = {};
 
         this.init_dropdowns();
         this.init_buttons();
         this.init_checkboxes();
+    }
+
+    update(){
+        const query_args = this.get_query_args();
+        this.hooks.on_update.forEach(action=>action(query_args));
     }
 
     init_dropdowns(){
@@ -40,25 +41,15 @@ export default class Filters {
 
             this.init_field(field, 'dropdown');
 
-            if( this.with_indicator ) {
-                this.indicators.init_field({
-                    el: field,
-                    on_remove: (value)=>{
-                        // on indicator remove, update query
-                        this.field_change(field, value);
-                    }
-                });
-            }
+            this.hooks.on_filter_dropdown_init.forEach(action=>action(field))
             
             field.dropdown = new Filter_Dropdown({
                 element: field,
                 multiple: field.dataset.multiple ?? false,
                 on_change: (value)=>{
-                    this.field_change(field, value);
-                    // on dropdown change, add indicator
-                    if( typeof field.indicator !== 'undefined' ) {
-                        field.indicator.update(value);
-                    }
+                    field.filter_value = value;
+                    this.update();
+                    this.on_filter_dropdown_change.forEach(action=>action(value, field))
                 }
             })
         })
@@ -74,9 +65,9 @@ export default class Filters {
                 container: field,
                 items: 'button',
                 multiple: field.dataset.multiple ?? false,
-                // query_string: this.query_strings,
                 on_change: (value)=>{
-                    this.field_change(field, value);
+                    field.filter_value = value;
+                    this.update();
                 }
             })
         })
@@ -92,7 +83,8 @@ export default class Filters {
             field.checkboxes = new Filter_Checkboxes({
                 container: field,
                 on_change: (value)=>{
-                    this.field_change(field, value);
+                    field.filter_value = value;
+                    this.update();
                 }
             })
         })
@@ -103,63 +95,24 @@ export default class Filters {
             this.init_field(field, 'checkbox');
 
             field.addEventListener('change', ()=>{
-                this.field_change(field, field.checked ? field.value : '');
+                field.filter_value = field.checked ? field.value : '';
+                this.update();
             });
         })
     }
 
     init_field(field, type){
+
+        const multiple = field.dataset.multiple ?? false;
+
         field.field_type = type;
         field.filter_key = this.get_filter_key(field);
         field.query_type = this.get_query_type(field);
+        field.filter_value = multiple ? [] : '';
+        
         this.fields.push(field);
     }
 
-    field_change(field, value){
-        
-        if( 
-            !value ||
-            typeof value == 'object' && !value.length
-        ) {
-            // remove
-            this.remove_filter(field.filter_key);
-
-            if( this.query_on_change ) {
-                this.query();
-            }
-
-            return;
-        }
-        
-        // add / update
-
-        let args = {};
-        if( field.query_type == 'tax_query' ) {
-            // tax_query
-            args.taxonomy = field.dataset.taxonomy;
-            args.terms = value;
-            args.field = field.dataset.taxonomy_field ?? 'slug';
-        }
-        else {
-            // meta_query
-            args.key = field.dataset.meta_key;
-            args.value = value;
-
-            if( typeof field.dataset.compare !== 'undefined' ) {
-                args.compare = field.dataset.compare;
-            }
-
-            if( typeof field.dataset.meta_type !== 'undefined' ) {
-                args.type = field.dataset.meta_type;
-            }
-        }
-
-        this.update_filter(field.filter_key, field.query_type, args);
-
-        if( this.query_on_change ) {
-            this.query();
-        }
-    }
 
     get_filter_key(field){
 
@@ -183,63 +136,131 @@ export default class Filters {
         return 'meta_query';
     }
 
-    query(){
-
-        const ff_ajax = this.options.ff_ajax;
-        
-        // apply filter query args
-        ff_ajax.extra_query_args.filters = this.get_filter_query_args();
-
-        ff_ajax.query_render(data=>{
-            if( typeof this.on_query_response === 'function' ) {
-                this.on_query_response(data);
-            }
-        })
-    }
-
     // filter indicators for fields like dropdown multiple
-    init_indicators(){
-
-        this.with_indicator = typeof this.options.indicators_container != 'undefined' && this.options.indicators_container != false;
-
-        if( !this.with_indicator ) return;
+    init_indicators(args){
         
-        this.indicators = new Filter_Indicators({
-            container: this.options.indicators_container,
+        if( typeof args.indicators_container === 'undefined' ) return;
+        if( !args.indicators_container ) return;
+        
+        const indicators = new Filter_Indicators({
+            container: args.indicators_container,
             after: this.container,
         });
-    }
-    
-    update_filter(key, type, query_args){
-
-        this.filter_args[key] = {
-            type,
-            query_args,
-        }
         
-    }
-    
-    remove_filter(key){
-        if( typeof this.filter_args[key] === 'undefined' ) return;
-        delete this.filter_args[key];
-    }
-
-    get_filter_query_args(){
-        
-        const query_args = {
-            meta_query: [],
-            tax_query: [],
-        }
-        
-        let keys = Object.keys(this.filter_args);
-
-        if( !keys.length ) return query_args;
-        
-        keys.forEach(key=>{
-            let filter = this.filter_args[key];
-            query_args[filter.type].push(filter.query_args);
+        this.hooks.on_filter_dropdown_init.push(field=>{
+            indicators.init_field({
+                el: field,
+                on_remove: (value)=>{
+                    field.filter_value = value;
+                    this.update();
+                }
+            });
         })
 
+        this.hooks.on_filter_dropdown_change.push((value, field)=>{
+            if( typeof field.indicator !== 'undefined' ) {
+                field.indicator.update(value);
+            }
+        })
+        
+        this.indicators = indicators;
+    }
+
+    get_query_args(){
+
+        const query_args = {};
+
+        const add_clause = {
+            tax_query: add_clause_tax,
+            meta_query: add_clause_meta
+        }
+        
+        this.fields.forEach(field=>{
+            if( !has_value(field) ) return;
+            const type = field.dataset.query_type;
+            add_clause[type](field, query_args);
+        })
+        
         return query_args;
     }
+
+    have_filters(){
+        for( const field of this.fields ) {
+            if( has_value(field) ) {
+                return true;
+            } 
+        }
+        return false;
+    }
+}
+
+function has_value(field) {
+    if( Array.isArray(field.filter_value) ) {
+        return field.filter_value.length;
+    }
+    return field.filter_value;
+}
+
+function add_unqiue(value, arr){
+
+    if( Array.isArray(value) ) {
+        value.forEach(value_item=>{
+            if( !arr.includes(value_item) ) {
+                arr.push(value_item)
+            }
+        })
+        return;
+    }
+
+    if( !arr.includes(value) ) {
+        arr.push(value)
+    }
+}
+
+function get_existing_tax_clause(field, query_args){
+    for( const clause of query_args.tax_query ) {
+        if( clause.filter_key === field.filter_key ) {
+            return clause;
+        }
+    }
+    return null;
+}
+
+function add_clause_tax(field, query_args){
+    
+    if( typeof query_args.tax_query === 'undefined' ) {
+        query_args.tax_query = [];
+    }
+    
+    const existing_clause = get_existing_tax_clause(field, query_args);
+    if( existing_clause !== null ) {
+        add_unqiue(field.value, existing_clause.terms);
+        return;
+    }
+
+    query_args.tax_query.push({
+        taxonomy: field.dataset.taxonomy,
+        field: field.dataset.taxonomy_field ?? 'slug',
+        terms: field.filter_value,
+        filter_key: field.filter_key,
+    })
+}
+
+function add_clause_meta(field, query_args){
+
+    if( typeof query_args.meta_query === 'undefined' ) {
+        query_args.meta_query = [];
+    }
+
+    let meta_compare = Array.isArray(field.value) ? 'IN' : '=';
+    if( typeof field.dataset.meta_compare !== 'undefined' && dataset.meta_compare ) {
+        meta_compare = field.dataset.meta_compare;
+    }
+
+    query_args.meta_query.push({
+        key: field.dataset.meta_key,
+        compare: meta_compare,
+        type: field.dataset.meta_type ?? 'CHAR',
+        value: field.filter_value,
+    })
 }

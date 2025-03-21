@@ -1,78 +1,68 @@
+import { create_div } from './utils';
+
 export default class Load_More {
     
-    constructor(options){
-        this.options = options;
-        this.ff_ajax = options.ff_ajax;
-        this.enabled = false;
-        this.init_button();
-        this.initial_check();
+    constructor(args){
+
+        this.hooks = {
+            on_update: [],
+        }
+
+        this.posts_per_page = args.posts_per_page;
+        this.page = 1;
+
+        this.init_button(args);
     }
 
-    init_button(){
+    init_button(args){
 
-        this.container = document.createElement('div');
-        this.container.classList.add('ff_ajax_load_more_container');
+        this.container = create_div('ff_ajax_load_more_container');
         this.container.style.display = 'none';
-        this.options.render_after.after(this.container);
+        args.render_after.after(this.container);
 
-        this.button = document.createElement('div');
-        this.button.classList.add('btn');
-        this.button.textContent = this.options.text ?? 'Load more';
-        this.container.append(this.button);
+        this.button = create_div('btn', this.container, args.text ?? 'Load more');
+        this.button.addEventListener('click', ()=>this.update());
+    }
 
-        this.button.addEventListener('click', ()=>{
-            if( !this.enabled ) return;
-            this.query();
-        });
+    update(){
+        this.loading();
+        const query_args = this.get_query_args();
+        this.hooks.on_update.forEach(action=>action(query_args));
+        this.page++;
     }
     
-    show_button(){
-        this.enabled = true;
+    show(){
         this.container.style.display = '';
     }
 
-    hide_button(){
-        this.enabled = false;
+    hide(){
         this.container.style.display = 'none';
     }
 
-    query(){
+    toggle(data){
+        this[data.have_more_posts ? 'show' : 'hide']();
+    }
 
-        const ff_ajax = this.options.ff_ajax;
-        
-        ff_ajax.query_args.offset = ff_ajax.total_posts;
-
+    loading(){
         this.button.classList.add('loading');
-        ff_ajax.container.classList.add('loading_load_more');
-        ff_ajax.query((data)=>{
-
-            if( typeof this.on_query_response === 'function' ) {
-                this.on_query_response(data);
-            }
-            
-            ff_ajax.render_append(data);
-            this.button.classList.remove('loading');
-            ff_ajax.container.classList.remove('loading_load_more');
-            this.update(data)
-        });
+        this.button.style.pointerEvents = 'none';
     }
 
-    update(data){
-
-        this.ff_ajax.total_posts = data.total_posts;
-
-        if( data.have_more_posts ) {
-            this.show_button();
-        }
-        else {
-            this.hide_button();
-        }
+    loading_complete(){
+        this.button.classList.remove('loading');
+        this.button.style.pointerEvents = '';
     }
 
-    initial_check(){
-        if( !this.ff_ajax.options.initial_data.have_more_posts ) return;
-        this.ff_ajax.total_posts = this.ff_ajax.options.initial_data.count;
-        this.show_button();
+    reset(){
+        this.page = 1;
     }
 
+    get_query_args(){
+        const query_args = {};
+
+        const offset = this.page * this.posts_per_page;
+        query_args.offset = offset;
+
+        return query_args;
+    }
 }

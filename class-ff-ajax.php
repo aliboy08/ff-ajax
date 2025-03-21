@@ -14,10 +14,10 @@ class FF_Ajax {
             'initial_query' => false,
             'filter_on_load' => false,
             'query_on_change' => true,
-            'query_strings' => false,
             'load_more_text' => 'Load more',
             'no_results_html' => 'No results found, try different filters',
         ];
+        
         foreach( $default_settings as $key => $value ) {
             if(isset( $this->settings[$key] )) continue;
             $this->settings[$key] = $value;
@@ -31,10 +31,6 @@ class FF_Ajax {
 
         if( !$this->settings['initial_query'] ) return;
 
-        if( $this->settings['query_strings'] ) {
-            $this->query_args_apply_query_strings();
-        }
-
         // pre_debug($this->settings['query_args']);
         
         $this->query = new WP_Query($this->settings['query_args']);
@@ -47,7 +43,7 @@ class FF_Ajax {
     }
     
     public function render(){
-        
+
         $this->enqueue_script();
 
         if( $this->settings['initial_query'] ) {
@@ -75,12 +71,6 @@ class FF_Ajax {
         $choices = $this->get_choices($args);
         $attr = $this->get_filter_attr($args);
         $add_class = isset($args['class']) ? ' '.$args['class'] : '';
-
-        $query_string_filter = $this->get_query_string_filter($args);
-        if( $query_string_filter ) {
-            $attr .= ' data-initial_selected="'. $query_string_filter .'"';
-            $selected = explode(',', $query_string_filter);
-        }
 
         $this->filters[] = $this->get_filter_data($args);
 
@@ -111,11 +101,6 @@ class FF_Ajax {
         $add_class = $this->get_class($args);
         $attr = $this->get_filter_attr($args);
 
-        $query_string_filter = $this->get_query_string_filter($args);
-        if( $query_string_filter ) {
-            $is_checked = ' checked';
-        }
-
         $this->filters[] = $this->get_filter_data($args);
 
         echo '<div class="filter-con '. $add_class .'">';
@@ -136,11 +121,6 @@ class FF_Ajax {
         $add_class = $this->get_class($args);
         $attr = $this->get_filter_attr($args);
         $choices = $this->get_choices($args);
-        
-        $query_string_filter = $this->get_query_string_filter($args);
-        if( $query_string_filter ) {
-            $selected = explode(',', $query_string_filter);
-        }
 
         $this->filters[] = $this->get_filter_data($args);
         
@@ -168,11 +148,6 @@ class FF_Ajax {
         $attr = $this->get_filter_attr($args);
         $add_class = $this->get_class($args);
         $choices = $this->get_choices($args);
-        
-        $query_string_filter = $this->get_query_string_filter($args);
-        if( $query_string_filter ) {
-            $selected = explode(',', $query_string_filter);
-        }
 
         $this->filters[] = $this->get_filter_data($args);
 
@@ -373,67 +348,6 @@ class FF_Ajax {
             return $args['meta_key'];
         }
 
-    }
-
-    public function query_args_apply_query_strings(){
-
-        foreach($this->filters as $filter) {
-            
-            $key = $filter['query_type'] == 'tax_query' ? $filter['taxonomy'] : $filter['meta_key'];
-            if( !isset($_GET['filter_'. $key]) ) continue;
-
-            $filter_value = explode(',', $_GET['filter_'. $key]);
-
-            if( $filter['query_type'] == 'tax_query' ) {
-                // tax_query
-                $this->query_string_add_tax_query($filter_value, $filter['taxonomy']);
-            }
-            else {
-                // meta_query
-                $this->query_string_add_meta_query($filter_value, $filter);
-            }
-        }
-    }
-
-    public function query_string_add_tax_query($terms, $taxonomy){
-
-        if( !isset( $this->settings['query_args']['tax_query'] ) ) {
-            $this->settings['query_args']['tax_query'] = [];
-        }
-
-        $this->settings['query_args']['tax_query'][] = [
-            'taxonomy' => $taxonomy,
-            'field' => 'slug',
-            'terms' => $terms,
-            'filter_key' => $taxonomy,
-        ];
-    }
-
-    public function query_string_add_meta_query($meta_value, $filter){
-
-        if( !isset( $this->settings['query_args']['meta_query'] ) ) {
-            $this->settings['query_args']['meta_query'] = [];
-        }
-
-        $this->settings['query_args']['meta_query'][] = [
-            'key' => $filter['meta_key'],
-            'value' => $meta_value,
-            'compare' => $filter['compare'] ?? '=',
-            'filter_key' => $filter['meta_key'],
-        ];
-    }
-
-    public function get_query_string_filter($args){
-
-        if( !$this->settings['query_strings'] ) return false;
-
-        $filter_key = $this->get_filter_key($args);
-        
-        if( isset($_GET['filter_'.$filter_key]) ) {
-            return $_GET['filter_'.$filter_key];
-        }
-
-        return false;
     }
 
     public function enqueue_script(){
