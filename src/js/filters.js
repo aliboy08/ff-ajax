@@ -257,7 +257,7 @@ function add_clause_meta(field, query_args){
     }
 
     let meta_compare = Array.isArray(field.value) ? 'IN' : '=';
-    if( typeof field.dataset.meta_compare !== 'undefined' && dataset.meta_compare ) {
+    if( field.dataset.meta_compare ) {
         meta_compare = field.dataset.meta_compare;
     }
 
