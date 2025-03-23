@@ -12,11 +12,12 @@ export default class FF_Ajax {
         this.hooks = {
             after_render: [],
             after_filter: [],
+            modify_query_args: [],
         }
 
-        this.id = args.id ?? 'default';
         this.options = args;
-        this.container = get_el(args.container)
+        this.container = get_el(args.container);
+        this.id = args.id ?? this.container.id;
         this.loop = this.container.querySelector('.loop');
         
         this.init_query(args);
@@ -93,7 +94,7 @@ export default class FF_Ajax {
         const request_data = {
             action: 'ff_ajax_action',
             nonce: ff_ajax_data.nonce,
-            query_args: JSON.stringify(this.query_args),
+            query_args: JSON.stringify(this.get_query_args()),
             total_posts: this.total_posts,
             item_template: this.item_template,
             id: this.id,
@@ -127,6 +128,12 @@ export default class FF_Ajax {
             }
         }
         return false;
+    }
+
+    get_query_args(){
+        const query_args = {...this.query_args};
+        this.hooks.modify_query_args.forEach(action=>action(query_args));
+        return query_args;
     }
 
     render(data, append = false){
