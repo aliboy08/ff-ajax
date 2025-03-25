@@ -240,7 +240,7 @@ function add_clause_tax(field, query_args){
     
     const existing_clause = get_existing_tax_clause(field, query_args);
     if( existing_clause !== null ) {
-        add_unqiue(field.value, existing_clause.terms);
+        add_unqiue(field.filter_value, existing_clause.terms);
         return;
     }
 

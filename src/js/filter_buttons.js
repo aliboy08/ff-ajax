@@ -2,7 +2,7 @@ import { get_el } from './utils';
 
 export default class Filter_Buttons {
 
-    constructor(options){
+    constructor(args){
         
         this.options = {
             container: '',
@@ -11,8 +11,8 @@ export default class Filter_Buttons {
             allow_empty: true,
         };
 
-        Object.keys(options).forEach(key=>{
-            this.options[key] = options[key];
+        Object.keys(args).forEach(key=>{
+            this.options[key] = args[key];
         })
         
         this.init();
