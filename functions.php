@@ -49,18 +49,15 @@ function ff_ajax_action(){
 
     $query = new WP_Query($query_args);
     ob_start();
-    foreach( $query->posts as $post ) {
+    foreach( $query->posts as $post_id ) {
         include $item_template;
     }
     $response['html'] = ob_get_clean();
     
     $total_posts = count($query->posts) + $query_args['offset'] ?? 0;
-    $have_more_posts = ff_ajax_have_more_posts($query_args, $total_posts);
-    $response['have_more_posts'] = $have_more_posts;
-    
-    if( $payload['with_total_posts_count'] ) {
-        $response['total_posts_count'] = !$have_more_posts ? $total_posts : ff_ajax_get_total_posts_count($query->request);
-    }
+    $response['have_more_posts'] = $query->found_posts > $total_posts;
+
+    $response['total_posts_count'] = $query->found_posts;
 
     $response = apply_filters('ff_ajax_response', $response, $payload, $query);
 
@@ -112,45 +109,4 @@ function ff_ajax_apply_extra_query_args($extra_query_args, $query_args){
     }
     
     return $query_args;
-}
-
-function ff_ajax_have_more_posts($args, $offset) {
-
-    $args['showposts'] = 1;
-    $args['fields'] = 'ids';
-
-    if( $offset ) {
-        $args['offset'] = $offset;
-    }
-
-    $q = get_posts( $args );
-    if( $q ) {
-        return true;
-    }
-
-    return 0;
-}
-
-function ff_ajax_get_total_posts_count($query_request){
-
-    global $wpdb;
-    
-    // remove extra white spaces
-    $count_query = preg_replace('/\s+/', ' ', $query_request);
-    
-    // replace select with count
-    $count_query = preg_replace('/SELECT .* FROM /', 'SELECT COUNT(DISTINCT '. $wpdb->prefix .'posts.ID) as count FROM ', $count_query);
-
-    // remove group by
-    $count_query = preg_replace('/ GROUP BY .*/', '', $count_query);
-
-    // remove order by
-    $count_query = preg_replace('/ ORDER BY .*/', '', $count_query);
-
-    // remove limit
-    $count_query = preg_replace('/ LIMIT .*/', '', $count_query);
-    
-    $result = $wpdb->get_results($count_query);
-    
-    return $result[0]->count;
 }

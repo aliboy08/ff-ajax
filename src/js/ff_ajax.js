@@ -118,6 +118,8 @@ export default class FF_Ajax {
             data.append(key, request_data[key]);
         }
 
+        // console.log({request_data})
+
         return data;
     }
     

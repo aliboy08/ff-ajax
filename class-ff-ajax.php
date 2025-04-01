@@ -23,6 +23,9 @@ class FF_Ajax {
             $this->settings[$key] = $value;
         }
 
+        $this->settings['query_args']['fields'] = 'ids';
+        $this->settings['query_args']['no_found_rows'] = false;
+
         // normalize path - fix for windows path
         $this->settings['item_template'] = str_replace('\\', '/', $this->settings['item_template']);
     }
@@ -31,14 +34,12 @@ class FF_Ajax {
 
         if( !$this->settings['initial_query'] ) return;
 
-        // pre_debug($this->settings['query_args']);
-        
         $this->query = new WP_Query($this->settings['query_args']);
         
         // initial check have more posts
         $this->settings['initial_data'] = [
             'count' => $this->query->post_count,
-            'have_more_posts' => ff_ajax_have_more_posts($this->settings['query_args'], $this->query->post_count),
+            'have_more_posts' => $this->have_more_posts(),
         ];
     }
     
@@ -49,7 +50,7 @@ class FF_Ajax {
         if( $this->settings['initial_query'] ) {
 
             echo '<div class="loop">';
-            foreach( $this->query->posts as $post ) {
+            foreach( $this->query->posts as $post_id ) {
                 include $this->settings['item_template'];
             }
             echo '</div>';
@@ -353,6 +354,12 @@ class FF_Ajax {
     public function enqueue_script(){
         global $ff_ajax;
         $ff_ajax->enqueue();
+    }
+
+    public function have_more_posts(){
+        $offset = $this->query->query['offset'] ?? 0;
+        $posts_count = (int)$this->query->query['showposts'] + $offset;
+        return $this->query->found_posts > $posts_count;
     }
 
 }
